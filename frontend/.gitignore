@@ -1,0 +1,86 @@
+# Frontend Next.js .gitignore
+
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env*.local
+.env
+.env.development
+.env.staging
+.env.production
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# AWS Amplify
+amplify/
+.amplifyrc
+
+# Temporary files
+.tmp/
+tmp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Package managers
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+
+# Build outputs
+dist/
+build/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Storybook
+.out
+.storybook-out
+storybook-static
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# ESLint
+.eslintcache
+
+# Tailwind
+.tailwindcss
+
+# Generated files
+/generated/
+*.generated.*

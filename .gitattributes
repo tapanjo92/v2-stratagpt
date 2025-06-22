@@ -1,0 +1,65 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Force batch scripts to always use CRLF line endings so that if a repo is accessed
+# in Windows via a file share from Linux, the scripts will work.
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+
+# Force bash scripts to always use LF line endings so that if a repo is accessed
+# in Unix via a file share from Windows, the scripts will work.
+*.sh text eol=lf
+*.{zsh,fish} text eol=lf
+
+# Explicitly declare text files you want to always be normalized and converted
+# to native line endings on checkout.
+*.{ts,tsx,js,jsx} text
+*.{json,yaml,yml} text
+*.{md,txt} text
+*.{html,htm,css,scss,sass} text
+*.{sql,graphql} text
+
+# Declare files that will always have CRLF line endings on checkout.
+*.{sln,csproj,vbproj,vcxproj,vcxproj.filters,proj,projitems,shproj} text eol=crlf
+
+# Declare files that will always have LF line endings on checkout.
+*.{py,pyw,pyx,pxd,pxi} text eol=lf
+
+# Denote all files that are truly binary and should not be modified.
+*.{png,jpg,jpeg,gif,ico,bmp,tiff,webp,svg} binary
+*.{woff,woff2,eot,ttf,otf} binary
+*.{zip,tar,gz,tgz,bz2,7z,rar} binary
+*.{pdf,doc,docx,xls,xlsx,ppt,pptx} binary
+*.{exe,dll,so,dylib} binary
+*.{mp3,mp4,wav,flac,ogg,mov,avi,wmv,mkv} binary
+
+# AWS CloudFormation templates
+*.{template,cfn}.{json,yaml,yml} text
+
+# Terraform
+*.{tf,tfvars} text eol=lf
+
+# Docker
+Dockerfile* text eol=lf
+*.dockerignore text eol=lf
+
+# Git
+.gitignore text eol=lf
+.gitattributes text eol=lf
+.gitkeep text eol=lf
+
+# CI/CD
+*.{yml,yaml} text eol=lf
+Jenkinsfile text eol=lf
+.travis.yml text eol=lf
+appveyor.yml text eol=lf
+circle.yml text eol=lf
+
+# Package managers
+package*.json text eol=lf
+yarn.lock text eol=lf
+pnpm-lock.yaml text eol=lf
+Gemfile text eol=lf
+requirements*.txt text eol=lf
+Pipfile text eol=lf
+poetry.lock text eol=lf
