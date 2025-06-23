@@ -1,6 +1,6 @@
 import { GetCommand, PutCommand, QueryCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { createDynamoDBClient, awsConfig } from '../aws-config';
-import { getCurrentUser } from 'aws-amplify/auth';
+import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { withRetry } from '../utils/aws-error-handler';
 
 export interface UserProfile {
@@ -27,6 +27,18 @@ export interface ChatMessage {
   timestamp: string;
 }
 
+export interface DocumentMetadata {
+  documentId: string;
+  name: string;
+  size: number;
+  contentType: string;
+  uploadedAt: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  extractedText?: string;
+  pageCount?: number;
+  error?: string;
+}
+
 export class DynamoDBService {
   private tableName: string;
 
@@ -35,8 +47,11 @@ export class DynamoDBService {
   }
 
   private async getUserId(): Promise<string> {
-    const user = await getCurrentUser();
-    return user.userId;
+    // We need the identity pool ID for IAM policy matching
+    const session = await fetchAuthSession();
+    
+    // Use identityId for IAM policy matching with DynamoDB
+    return session.identityId || (await getCurrentUser()).userId;
   }
 
   async getUserProfile(): Promise<UserProfile | null> {
@@ -244,6 +259,244 @@ export class DynamoDBService {
       console.error('Error deleting session:', error);
       throw new Error('Failed to delete session');
     }
+  }
+
+  // Document metadata methods
+  async createDocumentMetadata(metadata: DocumentMetadata): Promise<void> {
+    return withRetry(async () => {
+      const client = await createDynamoDBClient();
+      const userId = await this.getUserId();
+
+      const command = new PutCommand({
+        TableName: this.tableName,
+        Item: {
+          PK: `USER#${userId}`,
+          SK: `DOC#${metadata.documentId}`,
+          entityType: 'document',
+          ...metadata,
+          userId,
+          createdAt: new Date().toISOString()
+        }
+      });
+
+      await client.send(command);
+    });
+  }
+
+  async getDocumentMetadata(documentId: string): Promise<DocumentMetadata | null> {
+    return withRetry(async () => {
+      const client = await createDynamoDBClient();
+      const userId = await this.getUserId();
+
+      const command = new GetCommand({
+        TableName: this.tableName,
+        Key: {
+          PK: `USER#${userId}`,
+          SK: `DOC#${documentId}`
+        }
+      });
+
+      const response = await client.send(command);
+      
+      if (!response.Item) {
+        return null;
+      }
+
+      return {
+        documentId: response.Item.documentId,
+        name: response.Item.name,
+        size: response.Item.size,
+        contentType: response.Item.contentType,
+        uploadedAt: response.Item.uploadedAt,
+        status: response.Item.status,
+        extractedText: response.Item.extractedText,
+        pageCount: response.Item.pageCount,
+        error: response.Item.error
+      };
+    });
+  }
+
+  async updateDocumentStatus(
+    documentId: string, 
+    status: DocumentMetadata['status'], 
+    updates?: Partial<DocumentMetadata>
+  ): Promise<void> {
+    return withRetry(async () => {
+      const client = await createDynamoDBClient();
+      const userId = await this.getUserId();
+
+      let updateExpression = 'SET #status = :status, updatedAt = :updatedAt';
+      const expressionAttributeNames: Record<string, string> = {
+        '#status': 'status'
+      };
+      const expressionAttributeValues: Record<string, any> = {
+        ':status': status,
+        ':updatedAt': new Date().toISOString()
+      };
+
+      if (updates?.extractedText) {
+        updateExpression += ', extractedText = :extractedText';
+        expressionAttributeValues[':extractedText'] = updates.extractedText;
+      }
+
+      if (updates?.pageCount) {
+        updateExpression += ', pageCount = :pageCount';
+        expressionAttributeValues[':pageCount'] = updates.pageCount;
+      }
+
+      if (updates?.error) {
+        updateExpression += ', #error = :error';
+        expressionAttributeNames['#error'] = 'error';
+        expressionAttributeValues[':error'] = updates.error;
+      }
+
+      const command = new UpdateCommand({
+        TableName: this.tableName,
+        Key: {
+          PK: `USER#${userId}`,
+          SK: `DOC#${documentId}`
+        },
+        UpdateExpression: updateExpression,
+        ExpressionAttributeNames: expressionAttributeNames,
+        ExpressionAttributeValues: expressionAttributeValues
+      });
+
+      await client.send(command);
+    });
+  }
+
+  async deleteDocumentMetadata(documentId: string): Promise<void> {
+    return withRetry(async () => {
+      const client = await createDynamoDBClient();
+      const userId = await this.getUserId();
+
+      const command = new DeleteCommand({
+        TableName: this.tableName,
+        Key: {
+          PK: `USER#${userId}`,
+          SK: `DOC#${documentId}`
+        }
+      });
+
+      await client.send(command);
+    });
+  }
+
+  async listDocuments(): Promise<DocumentMetadata[]> {
+    return withRetry(async () => {
+      const client = await createDynamoDBClient();
+      const userId = await this.getUserId();
+
+      const command = new QueryCommand({
+        TableName: this.tableName,
+        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+        ExpressionAttributeValues: {
+          ':pk': `USER#${userId}`,
+          ':sk': 'DOC#'
+        },
+        Limit: 100
+      });
+
+      const response = await client.send(command);
+      
+      if (!response.Items) {
+        return [];
+      }
+
+      return response.Items.map(item => ({
+        documentId: item.documentId,
+        name: item.name,
+        size: item.size,
+        contentType: item.contentType,
+        uploadedAt: item.uploadedAt,
+        status: item.status,
+        extractedText: item.extractedText,
+        pageCount: item.pageCount,
+        error: item.error
+      }));
+    });
+  }
+
+  // Chat-related methods
+  async saveChatMessage(message: {
+    messageId: string;
+    conversationId: string;
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: string;
+  }): Promise<void> {
+    return withRetry(async () => {
+      const client = await createDynamoDBClient();
+      const userId = await this.getUserId();
+
+      const command = new PutCommand({
+        TableName: this.tableName,
+        Item: {
+          PK: `USER#${userId}`,
+          SK: `CHAT#${message.conversationId}#${message.timestamp}`,
+          messageId: message.messageId,
+          conversationId: message.conversationId,
+          role: message.role,
+          content: message.content,
+          timestamp: message.timestamp,
+          entityType: 'CHAT_MESSAGE'
+        }
+      });
+
+      await client.send(command);
+    });
+  }
+
+  async getChatHistory(conversationId: string = 'default', limit: number = 50): Promise<any[]> {
+    return withRetry(async () => {
+      const client = await createDynamoDBClient();
+      const userId = await this.getUserId();
+
+      const command = new QueryCommand({
+        TableName: this.tableName,
+        KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+        ExpressionAttributeValues: {
+          ':pk': `USER#${userId}`,
+          ':sk': `CHAT#${conversationId}#`
+        },
+        Limit: limit,
+        ScanIndexForward: false // Get newest messages first
+      });
+
+      const response = await client.send(command);
+      const items = response.Items || [];
+
+      // Return in chronological order (oldest first)
+      return items.reverse().map(item => ({
+        messageId: item.messageId,
+        conversationId: item.conversationId,
+        role: item.role,
+        content: item.content,
+        timestamp: item.timestamp
+      }));
+    });
+  }
+
+  async deleteConversation(conversationId: string = 'default'): Promise<void> {
+    return withRetry(async () => {
+      const client = await createDynamoDBClient();
+      const userId = await this.getUserId();
+
+      // First, get all messages in the conversation
+      const messages = await this.getChatHistory(conversationId, 1000);
+
+      // Delete each message
+      for (const message of messages) {
+        const deleteCommand = new DeleteCommand({
+          TableName: this.tableName,
+          Key: {
+            PK: `USER#${userId}`,
+            SK: `CHAT#${conversationId}#${message.timestamp}`
+          }
+        });
+        await client.send(deleteCommand);
+      }
+    });
   }
 }
 

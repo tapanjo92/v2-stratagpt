@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import AmplifyProvider from '@/app/components/AmplifyProvider'
 import { AuthProvider } from '@/app/contexts/AuthContext'
+import Navigation from '@/app/components/Navigation'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -32,26 +33,7 @@ export default function RootLayout({
         <AmplifyProvider>
           <AuthProvider>
             <div className="min-h-screen flex flex-col">
-              <header className="bg-white shadow-sm border-b">
-                <div className="container mx-auto px-4 py-4">
-                  <nav className="flex justify-between items-center">
-                    <div className="text-2xl font-bold text-gray-800">
-                      StrataGPT
-                    </div>
-                    <div className="space-x-4">
-                      <a href="/" className="text-gray-600 hover:text-gray-900">
-                        Home
-                      </a>
-                      <a href="/dashboard" className="text-gray-600 hover:text-gray-900">
-                        Dashboard
-                      </a>
-                      <a href="/signin" className="text-gray-600 hover:text-gray-900">
-                        Sign In
-                      </a>
-                    </div>
-                  </nav>
-                </div>
-              </header>
+              <Navigation />
               <main className="flex-grow">
                 {children}
               </main>

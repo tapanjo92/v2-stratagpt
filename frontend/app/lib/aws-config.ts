@@ -31,6 +31,7 @@ export async function getAwsCredentials(): Promise<AwsCredentialIdentity> {
       throw new Error('No credentials available. Please sign in.');
     }
 
+
     const credentials: AwsCredentialIdentity = {
       accessKeyId: session.credentials.accessKeyId,
       secretAccessKey: session.credentials.secretAccessKey,
@@ -124,8 +125,8 @@ export function stopCredentialRefresh(): void {
 export const awsConfig = {
   region: REGION,
   dynamoDBTable: process.env.NEXT_PUBLIC_DYNAMODB_TABLE_NAME || '',
-  s3BucketDocuments: process.env.NEXT_PUBLIC_S3_BUCKET_DOCUMENTS || '',
-  s3BucketProcessed: process.env.NEXT_PUBLIC_S3_BUCKET_PROCESSED || '',
+  s3BucketDocuments: process.env.NEXT_PUBLIC_S3_DOCUMENTS_BUCKET || '',
+  s3BucketProcessed: process.env.NEXT_PUBLIC_S3_PUBLIC_BUCKET || '',
   userPoolId: process.env.NEXT_PUBLIC_USER_POOL_ID || '',
   identityPoolId: process.env.NEXT_PUBLIC_IDENTITY_POOL_ID || ''
 };

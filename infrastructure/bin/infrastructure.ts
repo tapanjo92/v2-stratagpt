@@ -4,6 +4,7 @@ import * as cdk from 'aws-cdk-lib';
 import { AuthStack } from '../lib/stacks/auth-stack';
 import { DirectAccessStack } from '../lib/stacks/direct-access-stack';
 import { DataStack } from '../lib/stacks/data-stack';
+import { ProcessingStack } from '../lib/stacks/processing-stack';
 import { getEnvironmentConfig, getStackName } from '../lib/config/environment';
 
 const app = new cdk.App();
@@ -48,9 +49,20 @@ const directAccessStack = new DirectAccessStack(app, getStackName('DirectAccess'
   userPoolArn: authStack.userPool.userPoolArn,
 });
 
+// 4. Processing Stack - Lambda functions for document processing
+const processingStack = new ProcessingStack(app, getStackName('Processing', stage), {
+  ...commonProps,
+  config,
+  mainTable: dataStack.mainTable,
+  documentsBucket: dataStack.documentsBucket,
+  processedBucket: dataStack.processedDocumentsBucket, // Using dedicated processed documents bucket
+});
+
+
 // Add explicit dependencies
 directAccessStack.addDependency(authStack);
 directAccessStack.addDependency(dataStack);
+processingStack.addDependency(dataStack);
 
 // Add descriptions to help with deployment
 authStack.node.addMetadata('Description', 
@@ -59,5 +71,7 @@ dataStack.node.addMetadata('Description',
   'Data storage infrastructure including DynamoDB tables and S3 buckets');
 directAccessStack.node.addMetadata('Description', 
   'IAM policies and roles for direct client access to AWS services');
+processingStack.node.addMetadata('Description',
+  'Document processing pipeline with Lambda, Textract and S3 event triggers');
 
 app.synth();

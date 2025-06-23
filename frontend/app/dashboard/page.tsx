@@ -154,6 +154,24 @@ export default function DashboardPage() {
                 Test uploading, downloading, and managing documents directly in S3
               </p>
             </a>
+            <a
+              href="/dashboard/documents"
+              className="block p-4 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors"
+            >
+              <h3 className="font-semibold text-lg mb-2">Documents</h3>
+              <p className="text-sm text-gray-600">
+                Upload and manage your strata documents with automatic text extraction
+              </p>
+            </a>
+            <a
+              href="/dashboard/chat"
+              className="block p-4 border border-gray-200 rounded-lg hover:border-indigo-500 hover:bg-indigo-50 transition-colors"
+            >
+              <h3 className="font-semibold text-lg mb-2">Chat Assistant</h3>
+              <p className="text-sm text-gray-600">
+                Ask questions about strata law and get AI-powered answers
+              </p>
+            </a>
           </div>
         </div>
         

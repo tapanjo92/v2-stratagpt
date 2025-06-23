@@ -16,9 +16,13 @@ export default function TestS3Page() {
 
   useEffect(() => {
     startCredentialRefresh();
-    loadDocuments();
+    // Delay initial load to ensure authentication is complete
+    const timer = setTimeout(() => {
+      loadDocuments();
+    }, 1000);
     
     return () => {
+      clearTimeout(timer);
       stopCredentialRefresh();
     };
   }, []);
@@ -35,8 +39,12 @@ export default function TestS3Page() {
       setDocuments(docs);
       addTestResult(`Loaded ${docs.length} documents`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load documents');
-      addTestResult(`Error loading documents: ${err}`);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load documents';
+      setError(errorMessage);
+      // Only log to test results if it's not an initial auth error
+      if (!errorMessage.includes('No credentials available')) {
+        addTestResult(`Error loading documents: ${err}`);
+      }
     } finally {
       setLoading(false);
     }

@@ -15,9 +15,13 @@ export default function TestDynamoDBPage() {
 
   useEffect(() => {
     startCredentialRefresh();
-    loadProfile();
+    // Delay initial load to ensure authentication is complete
+    const timer = setTimeout(() => {
+      loadProfile();
+    }, 1000);
     
     return () => {
+      clearTimeout(timer);
       stopCredentialRefresh();
     };
   }, []);
@@ -34,8 +38,12 @@ export default function TestDynamoDBPage() {
       setProfile(userProfile);
       addTestResult(userProfile ? 'Profile loaded successfully' : 'No profile found');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load profile');
-      addTestResult(`Error loading profile: ${err}`);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load profile';
+      setError(errorMessage);
+      // Only log to test results if it's not an initial auth error
+      if (!errorMessage.includes('No credentials available')) {
+        addTestResult(`Error loading profile: ${err}`);
+      }
     } finally {
       setLoading(false);
     }
