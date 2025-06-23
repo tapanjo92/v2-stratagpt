@@ -105,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email: email,
         signInDetails: currentUser.signInDetails,
       })
-    } catch (err) {
+    } catch {
       setUser(null)
     } finally {
       setLoading(false)

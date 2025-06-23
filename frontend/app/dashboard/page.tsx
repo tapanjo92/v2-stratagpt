@@ -131,6 +131,31 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-xl font-semibold mb-4">AWS SDK Integration Tests</h2>
+          <p className="text-gray-600 mb-4">Test direct access to AWS services using your Identity Pool credentials</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a
+              href="/dashboard/test-dynamodb"
+              className="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors"
+            >
+              <h3 className="font-semibold text-lg mb-2">DynamoDB Test</h3>
+              <p className="text-sm text-gray-600">
+                Test creating profiles, chat sessions, and messages directly in DynamoDB
+              </p>
+            </a>
+            <a
+              href="/dashboard/test-s3"
+              className="block p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-colors"
+            >
+              <h3 className="font-semibold text-lg mb-2">S3 Test</h3>
+              <p className="text-sm text-gray-600">
+                Test uploading, downloading, and managing documents directly in S3
+              </p>
+            </a>
+          </div>
+        </div>
         
       </div>
     </div>
