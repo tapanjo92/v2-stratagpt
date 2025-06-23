@@ -12,6 +12,8 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [givenName, setGivenName] = useState('')
+  const [familyName, setFamilyName] = useState('')
   const [tenantId, setTenantId] = useState('')
   const [jurisdiction, setJurisdiction] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,6 +21,14 @@ export default function SignUpPage() {
 
   const validateForm = () => {
     const errors: Record<string, string> = {}
+    
+    if (!givenName) {
+      errors.givenName = 'First name is required'
+    }
+    
+    if (!familyName) {
+      errors.familyName = 'Last name is required'
+    }
     
     if (!email) {
       errors.email = 'Email is required'
@@ -62,6 +72,8 @@ export default function SignUpPage() {
     
     try {
       const result = await signUp(email, password, {
+        given_name: givenName,
+        family_name: familyName,
         'custom:tenantId': tenantId,
         'custom:jurisdiction': jurisdiction,
       })
@@ -85,6 +97,44 @@ export default function SignUpPage() {
         <h1 className="text-3xl font-bold text-center mb-8">Create Account</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="givenName" className="block text-sm font-medium mb-2">
+                First Name
+              </label>
+              <input
+                id="givenName"
+                type="text"
+                value={givenName}
+                onChange={(e) => setGivenName(e.target.value)}
+                className="input"
+                placeholder="John"
+                autoComplete="given-name"
+              />
+              {validationErrors.givenName && (
+                <p className="text-sm text-red-500 mt-1">{validationErrors.givenName}</p>
+              )}
+            </div>
+            
+            <div>
+              <label htmlFor="familyName" className="block text-sm font-medium mb-2">
+                Last Name
+              </label>
+              <input
+                id="familyName"
+                type="text"
+                value={familyName}
+                onChange={(e) => setFamilyName(e.target.value)}
+                className="input"
+                placeholder="Doe"
+                autoComplete="family-name"
+              />
+              {validationErrors.familyName && (
+                <p className="text-sm text-red-500 mt-1">{validationErrors.familyName}</p>
+              )}
+            </div>
+          </div>
+          
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-2">
               Email Address

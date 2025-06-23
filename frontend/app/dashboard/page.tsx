@@ -73,12 +73,16 @@ export default function DashboardPage() {
           <h2 className="text-xl font-semibold mb-4">User Information</h2>
           <dl className="space-y-2">
             <div>
-              <dt className="text-sm font-medium text-gray-500">Username</dt>
-              <dd className="text-lg">{user.username}</dd>
+              <dt className="text-sm font-medium text-gray-500">Email</dt>
+              <dd className="text-lg">{user.email || 'Loading...'}</dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">User ID</dt>
               <dd className="text-sm font-mono bg-gray-100 p-2 rounded">{user.userId}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-gray-500">Cognito Username</dt>
+              <dd className="text-xs font-mono text-gray-500">{user.username}</dd>
             </div>
           </dl>
         </div>
@@ -128,13 +132,6 @@ export default function DashboardPage() {
           )}
         </div>
         
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
-          <p className="font-semibold mb-2">Phase 2.2 Gate Check Complete!</p>
-          <p>✓ User can sign up and confirm email</p>
-          <p>✓ User can sign in with MFA support</p>
-          <p>✓ User can reset password</p>
-          <p>✓ AWS credentials obtained from Identity Pool</p>
-        </div>
       </div>
     </div>
   )

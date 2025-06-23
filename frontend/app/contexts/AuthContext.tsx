@@ -24,6 +24,7 @@ import { Hub } from 'aws-amplify/utils'
 interface User {
   username: string
   userId: string
+  email?: string
   signInDetails?: {
     loginId?: string
     authFlowType?: string
@@ -81,9 +82,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true)
       const currentUser = await getCurrentUser()
+      
+      // Get the user's email from signInDetails or fetch user attributes
+      let email = currentUser.signInDetails?.loginId
+      
+      // If email not in signInDetails, fetch from user attributes
+      if (!email) {
+        try {
+          const session = await fetchAuthSession()
+          const idToken = session.tokens?.idToken
+          if (idToken && idToken.payload && idToken.payload.email) {
+            email = idToken.payload.email as string
+          }
+        } catch (err) {
+          console.error('Failed to get email from token:', err)
+        }
+      }
+      
       setUser({
         username: currentUser.username,
         userId: currentUser.userId,
+        email: email,
         signInDetails: currentUser.signInDetails,
       })
     } catch (err) {
